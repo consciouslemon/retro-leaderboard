@@ -8,6 +8,13 @@
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
   <style>
     .retro-font { font-family: 'Press Start 2P', monospace; }
+    
+    /* Custom Drop Shadow for the Floating Boxart.
+       Gives depth to the 3D asset over the transparent area.
+    */
+    .floating-shadow {
+        filter: drop-shadow(0 10px 15px rgba(0, 0, 0, 0.7));
+    }
   </style>
 </head>
 <body class="bg-gray-900 text-gray-100 min-h-screen font-sans">
@@ -19,8 +26,8 @@
     <p class="text-gray-400 mt-3 text-xs md:text-sm tracking-wide">Where every reviewed classic stacks up</p>
   </header>
 
-  <main class="max-w-6xl mx-auto px-4 py-10">
-    <div id="leaderboard-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+  <main class="max-w-7xl mx-auto px-4 py-10">
+    <div id="leaderboard-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-x-6 gap-y-12">
       </div>
   </main>
 
@@ -46,19 +53,24 @@
           `).join('');
 
           return `
-            <div class="bg-gray-950 border-4 border-gray-800 rounded-none overflow-hidden hover:border-yellow-500 transition-colors duration-200 flex flex-col relative shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+            <div class="relative flex flex-col group h-full">
               
-              <div class="absolute top-2 left-2 bg-yellow-500 text-gray-950 retro-font text-[10px] px-2 py-1 font-bold z-10 border-2 border-black shadow-md">
-                #${game.rank}
+              <div class="relative z-10 w-full mb-3 floating-shadow transform group-hover:scale-105 transition-transform duration-300 ease-out">
+                
+                <img src="${game.boxArt}" 
+                     alt="${game.title} Box Art" 
+                     class="object-contain w-full h-auto"
+                     onerror="this.src='https://placehold.co/300x400/1f2937/9ca3af?text=No+Image'">
+                
+                <div class="absolute -top-3 -left-3 bg-yellow-500 text-gray-950 retro-font text-[10px] px-2 py-1 font-bold z-20 border-2 border-black shadow-md drop-shadow-lg">
+                  #${game.rank}
+                </div>
+
               </div>
 
-              <div class="relative aspect-[3/4] bg-gray-900 flex items-center justify-center overflow-hidden border-b-4 border-gray-800">
-                <img src="${game.boxArt}" alt="${game.title} Box Art" class="object-cover w-full h-full transform hover:scale-105 transition-transform duration-200" onerror="this.src='https://placehold.co/300x400/1f2937/9ca3af?text=No+Image'">
-              </div>
-
-              <div class="p-3 flex-grow flex flex-col justify-between bg-gray-950">
+              <div class="p-3 flex-grow flex flex-col justify-between bg-gray-950 border-4 border-gray-800 rounded-none shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
                 <div>
-                  <h2 class="font-bold text-sm text-white line-clamp-1">${game.title}</h2>
+                  <h2 class="font-bold text-sm text-white line-clamp-2 leading-snug">${game.title}</h2>
                   <div class="flex flex-wrap mt-1.5">
                     ${platformBadges}
                   </div>
@@ -73,6 +85,7 @@
                   ` : ''}
                 </div>
               </div>
+
             </div>
           `;
         }).join('');
