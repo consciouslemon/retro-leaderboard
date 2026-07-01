@@ -1,0 +1,10 @@
+[
+  {
+    "rank": 1,
+    "title": "Fallout 3",
+    "platform": ["Playstation 3", "Xbox 360", "Windows"],
+    "score": "6.4",
+    "boxArt": "boxart/Fallout 3.png",
+    "videoUrl": "https://youtube.com"
+  }
+]
