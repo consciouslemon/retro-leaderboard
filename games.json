@@ -1,6 +1,14 @@
 [
   {
     "rank": 1,
+    "title": "Super Mario Sunshine",
+    "platform": ["Gamecube"],
+    "score": "6.9",
+    "boxArt": "boxart/Super Mario Sunshine.png",
+    "videoUrl": "https://youtube.com"
+  },
+  {
+    "rank": 2,
     "title": "Fallout 3",
     "platform": ["Playstation 3", "Xbox 360", "Windows"],
     "score": "6.4",

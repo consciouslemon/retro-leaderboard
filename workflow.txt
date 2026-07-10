@@ -1,0 +1,7 @@
+1. Drop the new box art image into your local boxart/ folder on your NAS.
+2. Open games.json locally, add the new game entry, and adjust the rankings.
+3. Open your terminal and run these three quick commands:
+    git add .
+    git commit -m "Added [Game Name] to leaderboard"
+    git push origin main
+4. Review changes at https://consciouslemon.github.io/retro-leaderboard/
