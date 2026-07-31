@@ -1,6 +1,14 @@
 [
   {
     "rank": 1,
+    "title": "God of War II",
+    "platform": ["Playstation 2"],
+    "score": "7.9",
+    "boxArt": "boxart/God of War II.png",
+    "videoUrl": "https://youtube.com"
+  },
+  {
+    "rank": 2,
     "title": "Super Mario Sunshine",
     "platform": ["Gamecube"],
     "score": "6.9",
@@ -8,7 +16,7 @@
     "videoUrl": "https://youtube.com"
   },
   {
-    "rank": 2,
+    "rank": 3,
     "title": "Fallout 3",
     "platform": ["Playstation 3", "Xbox 360", "Windows"],
     "score": "6.4",

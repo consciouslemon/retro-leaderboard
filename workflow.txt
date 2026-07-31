@@ -5,3 +5,6 @@
     git commit -m "Added [Game Name] to leaderboard"
     git push origin main
 4. Review changes at https://consciouslemon.github.io/retro-leaderboard/
+
+New token:
+1. git push until pop up
