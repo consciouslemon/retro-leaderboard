@@ -9,9 +9,6 @@
   <style>
     .retro-font { font-family: 'Press Start 2P', monospace; }
     
-    /* Custom Drop Shadow for the Floating Boxart.
-       Gives depth to the 3D asset over the transparent area.
-    */
     .floating-shadow {
         filter: drop-shadow(0 10px 15px rgba(0, 0, 0, 0.7));
     }
@@ -27,8 +24,15 @@
   </header>
 
   <main class="max-w-7xl mx-auto px-4 py-10">
+    
+    <!-- Top Categories Highlight Banner -->
+    <div id="top-categories" class="mb-12 grid grid-cols-1 md:grid-cols-3 gap-6 border-b-4 border-gray-800 pb-10 hidden">
+      <!-- Injected by JavaScript -->
+    </div>
+
+    <!-- Main Leaderboard Grid -->
     <div id="leaderboard-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-x-6 gap-y-12">
-      </div>
+    </div>
   </main>
 
   <script>
@@ -37,11 +41,17 @@
         const response = await fetch('games.json');
         const games = await response.json();
         
-        // Always sort dynamically by rank ascending
-        games.sort((a, b) => a.rank - b.rank);
+        // Render the top games per category BEFORE sorting the main grid by overall score
+        renderTopCategories(games);
+
+        // Auto-sort dynamically by overall score descending (Highest to Lowest)
+        games.sort((a, b) => parseFloat(b.score) - parseFloat(a.score));
 
         const grid = document.getElementById('leaderboard-grid');
-        grid.innerHTML = games.map(game => {
+        
+        // Added 'index' parameter here to automatically calculate the rank
+        grid.innerHTML = games.map((game, index) => {
+          const currentRank = index + 1;
           const platforms = Array.isArray(game.platform) ? game.platform : [game.platform];
           
           const platformBadges = platforms.map(plat => `
@@ -60,8 +70,9 @@
                      class="object-contain w-full h-auto"
                      onerror="this.src='https://placehold.co/300x400/1f2937/9ca3af?text=No+Image'">
                 
+                <!-- Automatically displays the calculated rank -->
                 <div class="absolute -top-3 -left-3 bg-yellow-500 text-gray-950 retro-font text-[10px] px-2 py-1 font-bold z-20 border-2 border-black shadow-md drop-shadow-lg">
-                  #${game.rank}
+                  #${currentRank}
                 </div>
 
               </div>
@@ -88,11 +99,44 @@
           `;
         }).join('');
 
-        // NEW: Call the observer right here, AFTER the grid.innerHTML is fully populated!
         initScrollReveal();
 
       } catch (error) {
         console.error("Error fetching or parsing games.json:", error);
+      }
+    }
+
+    function renderTopCategories(games) {
+      const categories = [
+        { key: 'accessibilityScore', label: 'Top Accessibility' },
+        { key: 'gameplayScore', label: 'Top Gameplay' },
+        { key: 'evergreenScore', label: 'Most Evergreen' }
+      ];
+
+      const topContainer = document.getElementById('top-categories');
+      let htmlContent = '';
+
+      categories.forEach(cat => {
+        const validGames = games.filter(g => typeof g[cat.key] === 'number');
+        if (validGames.length === 0) return;
+
+        const topGame = validGames.sort((a, b) => b[cat.key] - a[cat.key])[0];
+
+        htmlContent += `
+          <div class="bg-gray-950 border-4 border-gray-800 p-3 flex items-center gap-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transform hover:-translate-y-1 transition-transform duration-200">
+            <img src="${topGame.boxArt}" alt="${topGame.title}" class="w-12 sm:w-16 h-auto object-contain" onerror="this.src='https://placehold.co/150x200/1f2937/9ca3af?text=No+Image'">
+            <div class="flex-grow">
+              <h3 class="text-yellow-500 retro-font text-[8px] sm:text-[10px] mb-1.5 leading-relaxed uppercase">${cat.label}</h3>
+              <p class="text-white font-bold text-xs sm:text-sm line-clamp-1">${topGame.title}</p>
+              <p class="text-gray-400 text-xs mt-0.5">${topGame[cat.key]} / 10</p>
+            </div>
+          </div>
+        `;
+      });
+
+      if (htmlContent) {
+        topContainer.innerHTML = htmlContent;
+        topContainer.classList.remove('hidden'); 
       }
     }
 
@@ -111,7 +155,6 @@
       document.querySelectorAll('.scroll-reveal').forEach(el => observer.observe(el));
     }
 
-    // Keep the event listener clean and simple
     document.addEventListener('DOMContentLoaded', loadLeaderboard);
   </script>
 </body>

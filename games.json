@@ -1,25 +1,31 @@
 [
   {
-    "rank": 1,
     "title": "God of War II",
     "platform": ["Playstation 2"],
     "score": "7.9",
+    "accessibilityScore": 6.7,
+    "gameplayScore": 8.2,
+    "evergreenScore": 8.8,
     "boxArt": "boxart/God of War II.png",
     "videoUrl": "https://youtube.com"
   },
   {
-    "rank": 2,
     "title": "Super Mario Sunshine",
     "platform": ["Gamecube"],
     "score": "6.9",
+    "accessibilityScore": 5.4,
+    "gameplayScore": 6.8,
+    "evergreenScore": 8.5,
     "boxArt": "boxart/Super Mario Sunshine.png",
     "videoUrl": "https://youtube.com"
   },
   {
-    "rank": 3,
     "title": "Fallout 3",
     "platform": ["Playstation 3", "Xbox 360", "Windows"],
     "score": "6.4",
+    "accessibilityScore": 4.8,
+    "gameplayScore": 6.8,
+    "evergreenScore": 7.5,
     "boxArt": "boxart/Fallout 3.png",
     "videoUrl": "https://youtube.com"
   }
