@@ -1,0 +1,39 @@
+name: Notify Discord of new YouTube videos
+
+on:
+  schedule:
+    - cron: "*/20 * * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  check-and-notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Check for new video and notify
+        env:
+          YOUTUBE_CHANNEL_ID: ${{ secrets.YOUTUBE_CHANNEL_ID }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: python notify/check_new_video.py
+
+      - name: Commit updated state file if changed
+        run: |
+          if ! git diff --quiet -- notify/last_video.txt; then
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add notify/last_video.txt
+            git commit -m "Update last-seen video ID"
+            git push
+          else
+            echo "No state change, nothing to commit."
+          fi
