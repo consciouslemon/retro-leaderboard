@@ -2,10 +2,10 @@
   {
     "title": "God of War II",
     "platform": ["Playstation 2"],
-    "score": "7.7",
-    "accessibilityScore": 5.1,
-    "gameplayScore": 8.8,
-    "evergreenScore": 9.2,
+    "score": "8.0",
+    "accessibilityScore": 6.5,
+    "gameplayScore": 8.5,
+    "evergreenScore": 9.0,
     "boxArt": "boxart/God of War II.png",
     "videoUrl": "https://youtube.com"
   },
@@ -17,7 +17,7 @@
     "gameplayScore": 6.8,
     "evergreenScore": 8.5,
     "boxArt": "boxart/Super Mario Sunshine.png",
-    "videoUrl": "https://youtube.com"
+    "videoUrl": "https://youtu.be/T1TfTxDm7W4"
   },
   {
     "title": "Fallout 3",
@@ -27,6 +27,6 @@
     "gameplayScore": 6.8,
     "evergreenScore": 7.5,
     "boxArt": "boxart/Fallout 3.png",
-    "videoUrl": "https://youtube.com"
+    "videoUrl": "https://youtu.be/qsNU2zg5jWo"
   }
 ]
