@@ -19,6 +19,7 @@ missing a real upload announcement is worse than an occasional false trigger on 
 import json
 import os
 import sys
+import time
 import urllib.error
 import urllib.request
 import xml.etree.ElementTree as ET
@@ -39,8 +40,30 @@ class _NoRedirect(urllib.request.HTTPRedirectHandler):
 
 def fetch_latest_video(channel_id: str) -> dict:
     url = f"https://www.youtube.com/feeds/videos.xml?channel_id={channel_id}"
-    with urllib.request.urlopen(url, timeout=15) as resp:
-        data = resp.read()
+    req = urllib.request.Request(
+        url,
+        headers={"User-Agent": "Mozilla/5.0 (compatible; ConsciousLemonBot/1.0)"},
+    )
+
+    # The feed endpoint occasionally returns a transient error (observed: one HTTP 404
+    # in 9 runs, which cleared on the very next scheduled run with no code change) —
+    # retry once with a short backoff before giving up, so a one-off blip doesn't need
+    # to wait for the next 20-minute cron tick (and doesn't send a failure email) to
+    # resolve itself.
+    last_error = None
+    for attempt in range(2):
+        try:
+            with urllib.request.urlopen(req, timeout=15) as resp:
+                data = resp.read()
+            last_error = None
+            break
+        except urllib.error.HTTPError as e:
+            last_error = e
+            if attempt == 0:
+                print(f"Feed fetch failed ({e}), retrying once...", file=sys.stderr)
+                time.sleep(5)
+    if last_error is not None:
+        raise last_error
 
     root = ET.fromstring(data)
     entry = root.find("atom:entry", NS)
