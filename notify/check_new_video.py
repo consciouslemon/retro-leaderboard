@@ -38,7 +38,7 @@ class _NoRedirect(urllib.request.HTTPRedirectHandler):
         return None
 
 
-def fetch_latest_video(channel_id: str) -> dict:
+def fetch_recent_videos(channel_id: str) -> list[dict]:
     url = f"https://www.youtube.com/feeds/videos.xml?channel_id={channel_id}"
     req = urllib.request.Request(
         url,
@@ -51,7 +51,7 @@ def fetch_latest_video(channel_id: str) -> dict:
     # to wait for the next 20-minute cron tick (and doesn't send a failure email) to
     # resolve itself.
     last_error = None
-    for attempt in range(2):
+    for attempt in range(3):
         try:
             with urllib.request.urlopen(req, timeout=15) as resp:
                 data = resp.read()
@@ -59,24 +59,28 @@ def fetch_latest_video(channel_id: str) -> dict:
             break
         except urllib.error.HTTPError as e:
             last_error = e
-            if attempt == 0:
-                print(f"Feed fetch failed ({e}), retrying once...", file=sys.stderr)
-                time.sleep(5)
+            if attempt < 2:
+                print(f"Feed fetch failed ({e}), retrying...", file=sys.stderr)
+                time.sleep(10 * (attempt + 1))
     if last_error is not None:
         raise last_error
 
     root = ET.fromstring(data)
-    entry = root.find("atom:entry", NS)
-    if entry is None:
+    entries = root.findall("atom:entry", NS)
+    if not entries:
         raise RuntimeError("No entries found in feed — check the channel ID.")
 
-    video_id = entry.find("yt:videoId", NS).text
-    title = entry.find("atom:title", NS).text
-    link = entry.find("atom:link", NS).attrib["href"]
-    thumb_el = entry.find("media:group/media:thumbnail", NS)
-    thumbnail = thumb_el.attrib["url"] if thumb_el is not None else None
-
-    return {"id": video_id, "title": title, "url": link, "thumbnail": thumbnail}
+    # Feed order is newest first.
+    videos = []
+    for entry in entries:
+        thumb_el = entry.find("media:group/media:thumbnail", NS)
+        videos.append({
+            "id": entry.find("yt:videoId", NS).text,
+            "title": entry.find("atom:title", NS).text,
+            "url": entry.find("atom:link", NS).attrib["href"],
+            "thumbnail": thumb_el.attrib["url"] if thumb_el is not None else None,
+        })
+    return videos
 
 
 def is_short(video_id: str) -> bool:
@@ -139,30 +143,41 @@ def main() -> int:
         print("Missing YOUTUBE_CHANNEL_ID or DISCORD_WEBHOOK_URL env vars.", file=sys.stderr)
         return 1
 
-    latest = fetch_latest_video(channel_id)
+    videos = fetch_recent_videos(channel_id)
     last_seen = read_last_seen()
+    ids = [v["id"] for v in videos]
 
-    if latest["id"] == last_seen:
-        print(f"No new upload. Latest is still {latest['id']} ({latest['title']!r}).")
+    if last_seen in ids:
+        pending = videos[: ids.index(last_seen)]
+    else:
+        # No usable state (first run, or last-seen fell out of the feed window): only
+        # consider the newest entry rather than re-announcing the whole feed.
+        pending = videos[:1] if videos[0]["id"] != last_seen else []
+
+    if not pending:
+        print(f"No new upload. Latest is still {videos[0]['id']} ({videos[0]['title']!r}).")
         return 0
 
-    # Mark as processed immediately regardless of outcome, so a Short doesn't get
-    # re-checked on every run until the next real upload comes along.
-    write_last_seen(latest["id"])
+    # Walk every upload newer than last-seen, oldest first. Looking only at the newest
+    # entry misses a full video when a Short is published after it and before the next
+    # run (GOD OF WAR II, 2026-10-12: the Short landed 48 minutes after the video and
+    # the next scheduled run was hours later, so the Short masked the real upload).
+    for video in reversed(pending):
+        try:
+            short = is_short(video["id"])
+        except Exception as e:
+            print(f"Shorts detection failed ({e}); defaulting to treating it as a full video.", file=sys.stderr)
+            short = False
 
-    try:
-        short = is_short(latest["id"])
-    except Exception as e:
-        print(f"Shorts detection failed ({e}); defaulting to treating it as a full video.", file=sys.stderr)
-        short = False
+        if short:
+            print(f"New upload {video['id']} ({video['title']!r}) looks like a Short — skipping announcement.")
+        else:
+            print(f"New full video detected: {video['id']} ({video['title']!r}). Posting to Discord...")
+            post_to_discord(webhook_url, video)  # raises on failure, leaving state untouched so the next run retries
+            print("Posted.")
 
-    if short:
-        print(f"New upload {latest['id']} ({latest['title']!r}) looks like a Short — skipping announcement.")
-        return 0
-
-    print(f"New full video detected: {latest['id']} ({latest['title']!r}). Posting to Discord...")
-    post_to_discord(webhook_url, latest)
-    print("Posted.")
+        # Advance state only after this upload is fully handled.
+        write_last_seen(video["id"])
     return 0
 
 
