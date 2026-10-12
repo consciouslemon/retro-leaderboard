@@ -127,7 +127,11 @@ def post_to_discord(webhook_url: str, video: dict) -> None:
     req = urllib.request.Request(
         webhook_url,
         data=body,
-        headers={"Content-Type": "application/json"},
+        headers={
+            "Content-Type": "application/json",
+            # Discord/Cloudflare rejects the default Python-urllib UA with a 403.
+            "User-Agent": "Mozilla/5.0 (compatible; ConsciousLemonBot/1.0)",
+        },
         method="POST",
     )
     with urllib.request.urlopen(req, timeout=15) as resp:
