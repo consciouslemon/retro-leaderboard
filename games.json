@@ -28,5 +28,15 @@
     "evergreenScore": 7.5,
     "boxArt": "boxart/Fallout 3.png",
     "videoUrl": "https://youtu.be/qsNU2zg5jWo"
+  },
+  {
+    "title": "Sonic the Hedgehog (2006)",
+    "platform": ["Xbox 360", "Playstation 3"],
+    "score": "3.9",
+    "accessibilityScore": 3.1,
+    "gameplayScore": 2.6,
+    "evergreenScore": 6.0,
+    "boxArt": "boxart/Sonic the Hedgehog (2006).png",
+    "videoUrl": "https://youtu.be/2jPDixSz050"
   }
 ]
